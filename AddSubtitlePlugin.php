@@ -19,11 +19,18 @@ class AddSubtitlePlugin extends Omeka_Plugin_AbstractPlugin
 		set_option('field-added', $args['post']['field-added']);
 
 		$fieldAdded = strtolower(get_option('field-added'));
+		$db = get_db();
 		$exhibitTable = get_db()->getTable('Exhibit');
 
 		if ($exhibitTable->hasColumn($fieldAdded)) {
 			Zend_Controller_Action_HelperBroker::getStaticHelper('FlashMessenger')->addMessage("This field already exists! Go back to 'Configure' to add a different field.", 'error');
 			delete_option('field-added');
+			$fieldAdded = null;
+		}
+
+		if ($fieldAdded) {
+			$sql = "ALTER TABLE `omeka_exhibits` ADD COLUMN `$fieldAdded` text collate utf8_unicode_ci default NULL AFTER `title`";
+			$db->query($sql);
 		}
 	}
 
